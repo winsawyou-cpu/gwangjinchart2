@@ -89,6 +89,28 @@
             );
         };
 
+        // 가로 공간 부족으로 인한 글자 겹침을 방지하기 위해 모바일에서 지그재그(교차)로 배치하는 커스텀 축
+        const CustomXAxisTick = (props) => {
+            const { x, y, payload, index, isMobile } = props;
+            const yOffset = (isMobile && index % 2 !== 0) ? 14 : 0; // 모바일에서 홀수 번째 항목은 14px 아래로 내림
+            
+            return (
+                <text
+                    x={x}
+                    y={y + 12 + yOffset}
+                    textAnchor="middle"
+                    fill="#64748b"
+                    style={{ 
+                        fontSize: isMobile ? '9px' : '12px', 
+                        fontWeight: 600, 
+                        letterSpacing: isMobile ? '-0.5px' : 'normal' 
+                    }}
+                >
+                    {payload.value}
+                </text>
+            );
+        };
+
         const App = () => {
             const exportRef = useRef(null);
             const [reportTitle, setReportTitle] = useState('2026 광진구 주요 행정 지표 분석');
@@ -278,54 +300,22 @@
                                             margin={{ 
                                                 top: isMobile ? 90 : 130, 
                                                 right: isMobile ? 10 : 40, 
-                                                left: isMobile ? -15 : 10, // 좌측 여백을 줄여 가로 공간 확보
-                                                bottom: isMobile ? 45 : 50 
+                                                left: isMobile ? -15 : 10, 
+                                                bottom: isMobile ? 60 : 50 // 지그재그 배치된 글씨가 잘리지 않게 하단 여백 추가
                                             }} 
-                                            barSize={isMobile ? 12 : 32} // 바 두께를 살짝 줄여 여백 확보
+                                            barSize={isMobile ? 12 : 32}
                                         >
                                             <text x="50%" y={isMobile ? 35 : 50} textAnchor="middle" fill="#1e293b" style={{ fontSize: isMobile ? '16px' : '28px', fontWeight: '900', letterSpacing: '-0.02em' }}>{reportTitle}</text>
                                             <text x="50%" y={isMobile ? 60 : 85} textAnchor="middle" fill="#64748b" style={{ fontSize: isMobile ? '10px' : '14px', fontWeight: '500' }}>단위: {unit} | 데이터 기준일: {dataDate}</text>
                                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                            {/* 커스텀 축(CustomXAxisTick) 적용 */}
                                             <XAxis 
                                                 dataKey="name" 
                                                 axisLine={{ stroke: '#e2e8f0' }} 
                                                 tickLine={false} 
-                                                tick={{ 
-                                                    fill: '#64748b', 
-                                                    fontSize: isMobile ? 8.5 : 12, 
-                                                    fontWeight: 600, 
-                                                    letterSpacing: '-0.5px' // 자간을 좁혀 글자 겹침 방지
-                                                }} 
-                                                tickMargin={isMobile ? 10 : 14} // 글자와 축 사이의 여백 추가
+                                                tick={<CustomXAxisTick isMobile={isMobile} />} 
                                                 interval={0} 
-                                                height={isMobile ? 35 : 50} 
+                                                height={isMobile ? 50 : 50} 
                                             />
                                             <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: isMobile ? 9 : 10 }} tickFormatter={(v) => v.toLocaleString()} width={isMobile ? 40 : 60} />
-                                            <Tooltip cursor={{ fill: 'rgba(79, 70, 229, 0.05)' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 5px 15px rgba(0,0,0,0.1)', padding: '10px', fontSize: '12px' }} />
-                                            <Bar dataKey="value" radius={[6, 6, 0, 0]} animationDuration={1000}>
-                                                {data.map((entry, index) => (
-                                                    <Cell key={index} fill={entry.name === highlightedDong ? '#4f46e5' : '#a5b4fc'} />
-                                                ))}
-                                                <LabelList dataKey="value" content={<CustomLabel highlight={highlightedDong} isMobile={isMobile} />} />
-                                            </Bar>
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div>
-                                {isGenerating && (
-                                    <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px] flex flex-col items-center justify-center rounded-2xl sm:rounded-3xl z-10">
-                                        <Icon name="loader" className="w-8 h-8 sm:w-10 sm:h-10 text-indigo-600 animate-spin mb-3" />
-                                        <p className="font-bold text-sm sm:text-base text-slate-800">모바일 최적화 리포트 생성 중...</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
-</body>
-</html>
+                                            <Tooltip cursor={{ fill: 'rgba(79, 70, 229, 0.05)' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 5px 15px rgba(0,0,0,0.
